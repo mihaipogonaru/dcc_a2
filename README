@@ -1,0 +1,28 @@
+We've used FloodLight for the controller. floodlight/src/main/java/dcc_a2/Controller.java contains all the code used to define the controller.
+We add flow rules only for known connections (IPV4, TCP) and only after having
+received the ACK from the client.
+
+This project doesn't cover a lot of error posibilities, like duplicate SYNs,
+dropped packets, really wrong options, RSTs, etc. We don't delete connection
+or flow rules since we don't get to see FINs or RSTs. But it should handle
+simple MPTCP balance tests.
+
+We assume that C resides on port 1, S1 resides on port 2 and S2 on port 3.
+We hash the string formed by IpSrc_IpDst_PortSrc_PortDst with the hashing
+offered by Java and choose a Server based on the hash.
+
+On SYNs we replace existing connections with the new one. On SYN with
+MP_CAPABLE we just create the connection, and on MP_JOIN we search
+for the token in our tokenToId map. We don't add flow rules on SYNs.
+We also allow normal TCP to pass through.
+
+On ACKs (not SYN-ACKs) with MP_CAPABLE, we get the receiver's key, calculate
+the token and add an entry into tokenToId map. And on ACKs with MP_JOIN
+we just check if the connection associated is a MP_JOIN one.
+If the ACK is not ok (no matching connection, MP_CAPABLE with no token etc)
+we don't add the flow rules.
+We also allow normal TCP and add rules for it.
+
+The controller produces a fair bit of logs, one can search for "Hashed" to
+see the SYN and ACK packets received and serach for "token" to see the
+MPTCP tokens calculated/extracted.

@@ -1,0 +1,11 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	url = git://github.com/vlolteanu/floodlight.git
+	fetch = +refs/heads/atds-2016:refs/remotes/origin/atds-2016
+[branch "atds-2016"]
+	remote = origin
+	merge = refs/heads/atds-2016
