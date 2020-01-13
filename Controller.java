@@ -144,6 +144,9 @@ class MPTCPOption {
 			byte[] crr = Arrays.copyOfRange(content, idx, content.length);
 			GenericOption opt = new GenericOption(crr);
 			
+			if (opt.type == GenericOption.OPT_END)
+				return null;
+			
 			if (opt.type == MPTCP_VAL) {
 				MPTCPOption mptcp = new MPTCPOption(crr);
 				
@@ -379,8 +382,8 @@ public class Controller extends BasicModule {
                 TransportPort dstPort = tcp.getDestinationPort();
                 short flags = tcp.getFlags();
                 
-                logger.info("IP:" + srcIp + " -> " + dstIp);
-                logger.info("Port:" + srcPort + " -> " + dstPort);
+                logger.info("IP: " + srcIp + " -> " + dstIp);
+                logger.info("Port: " + srcPort + " -> " + dstPort);
                 logger.info("Flags " + flags);
 
         		String idConn = srcIp + "_" + dstIp + "_" + srcPort + "_" + dstPort;
@@ -402,7 +405,7 @@ public class Controller extends BasicModule {
         			if (mptcp != null) {
         				if (mptcp.subtype == MPTCPOption.SubType.MP_CAPABLE) {
         					conn = new TCPConnection(TCPConnection.Type.MasterFlow, eport);
-        					logger.info("MPTCP_CAPABLE found");
+        					logger.info("MPTCP_CAPABLE found. Created a connection");
         				} else if (mptcp.subtype == MPTCPOption.SubType.MP_JOIN) {
         					byte[] recvKeyHash = MPTCPOption.getToken(mptcp);
         					
@@ -415,7 +418,7 @@ public class Controller extends BasicModule {
 	        						eport = masterConn.eport;
 	        								
 		        					conn = new TCPConnection(TCPConnection.Type.JoinedFlow, eport);
-		        					logger.info("Correct MPTCP_JOIN. Token: " + token + ". Eport: " + eport);
+		        					logger.info("Correct MPTCP_JOIN. Connection found for token: " + token + ". Eport: " + eport);
 	        					} else {
 	        						logger.info("Incorrect MPTCP_JOIN. No connection found for token: " + token);
 	        					}
@@ -465,10 +468,11 @@ public class Controller extends BasicModule {
         						tokenToId.put(token, idConn);
         						logger.info("Set token " + token + " to this connection");
         					} else {
+        						logger.info("No recv key found");
         						addFlowRules = false;
         					}
         				} else if (mptcp.subtype == MPTCPOption.SubType.MP_JOIN) {
-        					logger.info("MPTCP_JOIN found");
+        					logger.info("MPTCP_JOIN found. Checking that connection was initiated by MP_JOIN");
         					
         					/* The connection must be of joined type, or the ACK is wrong */
         					addFlowRules = conn.isMPTCPJoined();

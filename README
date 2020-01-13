@@ -1,4 +1,4 @@
-We've used FloodLight for the controller. floodlight/src/main/java/dcc_a2/Controller.java contains all the code used to define the controller.
+We've used FloodLight for the controller. Controller.java contains all the code used to define the controller.
 We add flow rules only for known connections (IPV4, TCP) and only after having
 received the ACK from the client.
 
